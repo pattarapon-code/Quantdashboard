@@ -226,20 +226,46 @@ def main():
         c3.metric("Max Drawdown", f"฿ {stats['Max Drawdown']:,.2f}", f"Recovery: {stats['Recovery Factor']:.2f}", delta_color="inverse")
         c4.metric("Profit Factor", f"{stats['Profit Factor']:.2f}", f"Cons. Losses: {stats['Max Cons. Loss']}")
 
-        col_chart1, col_chart2 = st.columns(2)
-        with col_chart1:
-            st.markdown("**Equity Curve (Trade by Trade)**")
-            fig_eq = go.Figure()
-            fig_eq.add_trace(go.Scatter(x=df_active['Trade_Index'], y=df_active['Running_PnL'], fill='tozeroy', mode='lines', line=dict(color=color, width=2), fillcolor=color.replace('rgb', 'rgba').replace(')', ', 0.2)') if 'rgb' in color else color))
-            fig_eq.update_layout(template="plotly_dark", height=300, margin=dict(l=0, r=0, t=10, b=0))
-            st.plotly_chart(fig_eq, use_container_width=True)
-            
-        with col_chart2:
-            st.markdown("**Drawdown Profile**")
-            fig_dd = go.Figure()
-            fig_dd.add_trace(go.Scatter(x=df_active['Trade_Index'], y=df_active['Drawdown'], fill='tozeroy', mode='lines', line=dict(color='#ef4444', width=2), fillcolor='rgba(239, 68, 68, 0.2)'))
-            fig_dd.update_layout(template="plotly_dark", height=300, margin=dict(l=0, r=0, t=10, b=0))
-            st.plotly_chart(fig_dd, use_container_width=True)
+       # --- ลบ col_chart1 และ col_chart2 ของเดิมทิ้ง แล้ววางชุดนี้แทน ---
+        
+        st.markdown("**📈 Equity Curve & Underwater Drawdown (1:1 Scale)**")
+        fig_eq_dd = go.Figure()
+        
+        # แปลงสี Hex เป็น RGBA เพื่อให้กราฟพื้นที่โปร่งแสงสวยงาม
+        hex_color = color.lstrip('#')
+        rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        rgba_color = f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.15)"
+        
+        # 1. วาดกราฟ Equity Curve (กำไรสะสม)
+        fig_eq_dd.add_trace(go.Scatter(
+            x=df_active['Trade_Index'], 
+            y=df_active['Running_PnL'],
+            name="Equity (THB)",
+            fill='tozeroy', 
+            mode='lines', 
+            line=dict(color=color, width=2),
+            fillcolor=rgba_color
+        ))
+        
+        # 2. วาดกราฟ Drawdown (จมน้ำ) ทับลงไปในแกน Y เดียวกัน
+        fig_eq_dd.add_trace(go.Scatter(
+            x=df_active['Trade_Index'], 
+            y=df_active['Drawdown'],
+            name="Drawdown (THB)",
+            fill='tozeroy', 
+            mode='lines', 
+            line=dict(color='#ef4444', width=1),
+            fillcolor='rgba(239, 68, 68, 0.4)' # สีแดงโปร่งแสง
+        ))
+        
+        fig_eq_dd.update_layout(
+            template="plotly_dark", 
+            height=450, 
+            margin=dict(l=0, r=0, t=10, b=0),
+            hovermode="x unified", # เอาเมาส์ชี้แล้วโชว์ข้อมูล 2 เส้นพร้อมกัน
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_eq_dd, use_container_width=True) 
             
         # --- NEW: Top 3 Longest Drawdowns Table ---
         st.markdown("### 🕒 Top 3 Longest Drawdown Periods")
