@@ -195,7 +195,7 @@ def main():
         df_summary.style.format({
             'Net Profit': "{:,.2f}", 'Max Drawdown': "{:,.2f}", 'Avg Trade': "{:,.2f}",
             'Win Rate (%)': "{:.1f}%", 'Profit Factor': "{:.2f}", 'Sharpe Ratio': "{:.2f}", 'Recovery Factor': "{:.2f}"
-        }).applymap(lambda x: 'color: #10b981' if x > 0 else 'color: #ef4444', subset=['Net Profit']),
+        }).map(lambda x: 'color: #10b981' if x > 0 else 'color: #ef4444', subset=['Net Profit']),
         use_container_width=True, height=200
     )
     
@@ -274,7 +274,7 @@ def main():
             df_dd.index = df_dd.index + 1
             st.dataframe(
                 df_dd.style.format({'Max Depth (THB)': "฿ {:,.2f}"})
-                .applymap(lambda x: 'color: #ef4444' if isinstance(x, (int, float)) and x < 0 else ''),
+                .map(lambda x: 'color: #ef4444' if isinstance(x, (int, float)) and x < 0 else ''),
                 use_container_width=True
             )
         else:
